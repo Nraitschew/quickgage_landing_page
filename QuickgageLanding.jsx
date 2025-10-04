@@ -302,7 +302,7 @@ const QuickgageLanding = () => {
             <div
               ref={(el) => (sectionsRef.current[1] = el)}
               className="scroll-animate text-center"
-              style={{ animationDelay: '0.1s' }}
+              style={{ transitionDelay: '0.1s' }}
             >
               <h3 className="text-2xl font-light mb-4">Generic</h3>
               <p className="text-gray-400 font-light leading-relaxed">
@@ -312,7 +312,7 @@ const QuickgageLanding = () => {
             <div
               ref={(el) => (sectionsRef.current[2] = el)}
               className="scroll-animate text-center"
-              style={{ animationDelay: '0.2s' }}
+              style={{ transitionDelay: '0.2s' }}
             >
               <h3 className="text-2xl font-light mb-4">Inauthentic</h3>
               <p className="text-gray-400 font-light leading-relaxed">
@@ -322,7 +322,7 @@ const QuickgageLanding = () => {
             <div
               ref={(el) => (sectionsRef.current[3] = el)}
               className="scroll-animate text-center"
-              style={{ animationDelay: '0.3s' }}
+              style={{ transitionDelay: '0.3s' }}
             >
               <h3 className="text-2xl font-light mb-4">Time-consuming</h3>
               <p className="text-gray-400 font-light leading-relaxed">
@@ -345,7 +345,7 @@ const QuickgageLanding = () => {
           <p
             ref={(el) => (sectionsRef.current[5] = el)}
             className="scroll-animate text-xl text-gray-400 font-light leading-relaxed"
-            style={{ animationDelay: '0.1s' }}
+            style={{ transitionDelay: '0.15s' }}
           >
             Quickgage analyzes your existing writing—emails, articles, social posts—to understand
             your unique voice, tone, and style. Then it generates content that actually sounds like you.
@@ -366,7 +366,7 @@ const QuickgageLanding = () => {
             <div
               ref={(el) => (sectionsRef.current[7] = el)}
               className="scroll-animate"
-              style={{ animationDelay: '0.1s' }}
+              style={{ transitionDelay: '0.1s' }}
             >
               <div className="text-6xl font-light text-white/20 mb-6">01</div>
               <h3 className="text-2xl font-light mb-4">Connect</h3>
@@ -377,7 +377,7 @@ const QuickgageLanding = () => {
             <div
               ref={(el) => (sectionsRef.current[8] = el)}
               className="scroll-animate"
-              style={{ animationDelay: '0.2s' }}
+              style={{ transitionDelay: '0.2s' }}
             >
               <div className="text-6xl font-light text-white/20 mb-6">02</div>
               <h3 className="text-2xl font-light mb-4">Analyze</h3>
@@ -388,7 +388,7 @@ const QuickgageLanding = () => {
             <div
               ref={(el) => (sectionsRef.current[9] = el)}
               className="scroll-animate"
-              style={{ animationDelay: '0.3s' }}
+              style={{ transitionDelay: '0.3s' }}
             >
               <div className="text-6xl font-light text-white/20 mb-6">03</div>
               <h3 className="text-2xl font-light mb-4">Create</h3>
@@ -428,7 +428,7 @@ const QuickgageLanding = () => {
               setStep(1);
             }}
             className="scroll-animate px-12 py-5 bg-white text-black rounded-xl font-medium hover:opacity-90 transition-opacity duration-300 mb-8"
-            style={{ animationDelay: '0.1s' }}
+            style={{ transitionDelay: '0.15s' }}
           >
             Get Started
           </button>
@@ -495,16 +495,18 @@ const QuickgageLanding = () => {
           50% { transform: translate(30px, -30px); }
         }
 
-        /* Scroll animations */
+        /* Scroll animations - More dramatic and clear */
         .scroll-animate {
           opacity: 0;
-          transform: translateY(30px);
-          transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+          transform: translateY(60px) scale(0.95);
+          transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1),
+                      transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+          will-change: opacity, transform;
         }
 
         .scroll-animate.animate-in {
           opacity: 1;
-          transform: translateY(0);
+          transform: translateY(0) scale(1);
         }
 
         /* Fade in animation for step transitions */
