@@ -148,10 +148,7 @@ const QuickgageLanding = () => {
         <div className="max-w-4xl mx-auto text-center">
           {step === 1 && (
             <>
-              <div className="inline-block px-4 py-2 rounded-full border border-white/10 text-sm text-gray-400 mb-8">
-                AI Voice Personalization
-              </div>
-              <h1 className="text-6xl md:text-7xl lg:text-8xl font-light tracking-tight mb-8 leading-tight">
+              <h1 className="text-6xl md:text-7xl lg:text-8xl font-light tracking-tight mb-8 leading-tight mt-8">
                 The wait is part of the{' '}
                 <span style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>journey.</span>
               </h1>
