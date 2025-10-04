@@ -463,7 +463,7 @@ const QuickgageLanding = () => {
       </footer>
 
       {/* Styles */}
-      <style jsx>{`
+      <style>{`
         /* Starfield twinkle animation */
         .star {
           animation: twinkle ease-in-out infinite;
