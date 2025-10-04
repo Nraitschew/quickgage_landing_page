@@ -446,17 +446,9 @@ const QuickgageLanding = () => {
 
       {/* Footer */}
       <footer className="relative border-t border-white/10 py-8 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="text-sm font-light" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
             Quickgage
-          </div>
-          <div className="flex gap-8 text-sm">
-            <a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">
-              Privacy
-            </a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors duration-300">
-              Terms
-            </a>
           </div>
           <div className="text-sm text-gray-400">© 2024 Quickgage. All rights reserved.</div>
         </div>
