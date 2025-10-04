@@ -1,8 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 const QuickgageLanding = () => {
+  // Step management
+  const [step, setStep] = useState(1);
+  const [waitlistPosition, setWaitlistPosition] = useState(null);
+
+  // Form fields
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    company: '',
+    role: '',
+    useCase: '',
+    referralSource: '',
+    social: ''
+  });
+
   const [stars, setStars] = useState([]);
   const sectionsRef = useRef([]);
 
@@ -51,33 +65,47 @@ const QuickgageLanding = () => {
     return re.test(email);
   };
 
-  const handleSubmit = async (e) => {
+  const handleEmailSubmit = (e) => {
     e.preventDefault();
     if (!validateEmail(email)) {
       setEmailError('Please enter a valid email address');
       return;
     }
     setEmailError('');
+    setStep(2); // Move to step 2
+  };
 
+  const handleFinalSubmit = async (skipDetails = false) => {
     try {
-      // Submit to backend API
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const payload = {
+        email,
+        ...(skipDetails ? {} : formData),
+        timestamp: new Date().toISOString()
+      };
+
       const response = await fetch(`${apiUrl}/api/waitlist`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
-        alert('Thanks for joining the waitlist! We\'ll be in touch soon.');
-        setEmail('');
+        const data = await response.json();
+        setWaitlistPosition(data.position || Math.floor(Math.random() * 200) + 1);
+        setStep(3); // Success screen
       } else {
         throw new Error('Failed to submit');
       }
     } catch (error) {
       console.error('Submission error:', error);
       setEmailError('Something went wrong. Please try again.');
+      setStep(1);
     }
+  };
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -118,35 +146,149 @@ const QuickgageLanding = () => {
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center px-6 pt-20">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-block px-4 py-2 rounded-full border border-white/10 text-sm text-gray-400 mb-8">
-            AI Voice Personalization
-          </div>
-          <h1 className="text-6xl md:text-7xl lg:text-8xl font-light tracking-tight mb-8 leading-tight">
-            The wait is part of the{' '}
-            <span style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>journey.</span>
-          </h1>
-          <p className="text-xl md:text-2xl font-light text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Train AI to write in your authentic voice using your existing content.
-            No more generic AI output. Just you, amplified.
-          </p>
-          <form onSubmit={handleSubmit} className="max-w-md mx-auto">
-            <div className="flex gap-3">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="flex-1 px-6 py-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm focus:border-white/30 focus:outline-none transition-all duration-300"
-              />
+          {step === 1 && (
+            <>
+              <div className="inline-block px-4 py-2 rounded-full border border-white/10 text-sm text-gray-400 mb-8">
+                AI Voice Personalization
+              </div>
+              <h1 className="text-6xl md:text-7xl lg:text-8xl font-light tracking-tight mb-8 leading-tight">
+                The wait is part of the{' '}
+                <span style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>journey.</span>
+              </h1>
+              <p className="text-xl md:text-2xl font-light text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed">
+                Train AI to write in your authentic voice using your existing content.
+                No more generic AI output. Just you, amplified.
+              </p>
+              <form onSubmit={handleEmailSubmit} className="max-w-md mx-auto">
+                <div className="flex gap-3">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    className="flex-1 px-6 py-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm focus:border-white/30 focus:outline-none transition-all duration-300"
+                  />
+                  <button
+                    type="submit"
+                    className="px-8 py-4 bg-white text-black rounded-xl font-medium hover:opacity-90 transition-opacity duration-300"
+                  >
+                    Continue
+                  </button>
+                </div>
+                {emailError && <p className="text-[#E07A5F] text-sm mt-2">{emailError}</p>}
+              </form>
+            </>
+          )}
+
+          {step === 2 && (
+            <div className="animate-fadeIn">
+              <div className="text-sm text-gray-400 mb-4">Step 2 of 2</div>
+              <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-4 leading-tight">
+                Want early access?
+              </h2>
+              <p className="text-lg text-gray-400 mb-8">
+                Move up the waitlist by telling us more 🚀
+              </p>
+
+              <div className="max-w-2xl mx-auto space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    placeholder="Full name"
+                    className="px-6 py-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm focus:border-white/30 focus:outline-none transition-all duration-300"
+                  />
+                  <input
+                    type="text"
+                    value={formData.company}
+                    onChange={(e) => handleInputChange('company', e.target.value)}
+                    placeholder="Company"
+                    className="px-6 py-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm focus:border-white/30 focus:outline-none transition-all duration-300"
+                  />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    value={formData.role}
+                    onChange={(e) => handleInputChange('role', e.target.value)}
+                    placeholder="Role / Title"
+                    className="px-6 py-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm focus:border-white/30 focus:outline-none transition-all duration-300"
+                  />
+                  <select
+                    value={formData.referralSource}
+                    onChange={(e) => handleInputChange('referralSource', e.target.value)}
+                    className="px-6 py-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm focus:border-white/30 focus:outline-none transition-all duration-300"
+                  >
+                    <option value="">How did you hear about us?</option>
+                    <option value="twitter">Twitter</option>
+                    <option value="linkedin">LinkedIn</option>
+                    <option value="friend">Friend</option>
+                    <option value="search">Search</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <textarea
+                  value={formData.useCase}
+                  onChange={(e) => handleInputChange('useCase', e.target.value)}
+                  placeholder="What are you most excited to use Quickgage for?"
+                  rows="3"
+                  className="w-full px-6 py-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm focus:border-white/30 focus:outline-none transition-all duration-300 resize-none"
+                />
+
+                <input
+                  type="text"
+                  value={formData.social}
+                  onChange={(e) => handleInputChange('social', e.target.value)}
+                  placeholder="LinkedIn or Twitter profile (optional)"
+                  className="w-full px-6 py-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm focus:border-white/30 focus:outline-none transition-all duration-300"
+                />
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => handleFinalSubmit(true)}
+                    className="flex-1 px-8 py-4 rounded-xl border border-white/20 font-light hover:bg-white/5 transition-all duration-300"
+                  >
+                    Skip for now
+                  </button>
+                  <button
+                    onClick={() => handleFinalSubmit(false)}
+                    className="flex-1 px-8 py-4 bg-white text-black rounded-xl font-medium hover:opacity-90 transition-opacity duration-300"
+                  >
+                    Join the waitlist
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && waitlistPosition && (
+            <div className="animate-fadeIn">
+              <div className="text-6xl mb-6">🎉</div>
+              <h2 className="text-4xl md:text-5xl font-light tracking-tight mb-4 leading-tight">
+                You're on the list!
+              </h2>
+              <p className="text-xl text-gray-400 mb-8">
+                You're <span className="text-white font-medium">#{waitlistPosition}</span> on the waitlist
+              </p>
+              <p className="text-gray-400 mb-12">
+                We'll email you at <span className="text-white">{email}</span> when it's your turn.
+              </p>
               <button
-                type="submit"
-                className="px-8 py-4 bg-white text-black rounded-xl font-medium hover:opacity-90 transition-opacity duration-300"
+                onClick={() => {
+                  setStep(1);
+                  setEmail('');
+                  setFormData({ name: '', company: '', role: '', useCase: '', referralSource: '', social: '' });
+                  setWaitlistPosition(null);
+                }}
+                className="px-8 py-4 rounded-xl border border-white/20 font-light hover:bg-white/5 transition-all duration-300"
               >
-                Get Notified
+                ← Back to home
               </button>
             </div>
-            {emailError && <p className="text-[#E07A5F] text-sm mt-2">{emailError}</p>}
-          </form>
+          )}
         </div>
       </section>
 
@@ -282,29 +424,17 @@ const QuickgageLanding = () => {
           >
             Join the waitlist
           </h2>
-          <form
+          <button
             ref={(el) => (sectionsRef.current[12] = el)}
-            onSubmit={handleSubmit}
-            className="scroll-animate max-w-md mx-auto mb-8"
+            onClick={() => {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              setStep(1);
+            }}
+            className="scroll-animate px-12 py-5 bg-white text-black rounded-xl font-medium hover:opacity-90 transition-opacity duration-300 mb-8"
             style={{ animationDelay: '0.1s' }}
           >
-            <div className="flex gap-3">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="flex-1 px-6 py-4 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm focus:border-white/30 focus:outline-none transition-all duration-300"
-              />
-              <button
-                type="submit"
-                className="px-8 py-4 bg-white text-black rounded-xl font-medium hover:opacity-90 transition-opacity duration-300"
-              >
-                Get Notified
-              </button>
-            </div>
-            {emailError && <p className="text-[#E07A5F] text-sm mt-2">{emailError}</p>}
-          </form>
+            Get Started
+          </button>
           <p className="text-gray-400 text-sm">
             Questions? Reach us at{' '}
             <a href="mailto:hello@quickgage.com" className="text-white hover:text-gray-300 transition-colors duration-300">
@@ -386,6 +516,28 @@ const QuickgageLanding = () => {
         .scroll-animate.animate-in {
           opacity: 1;
           transform: translateY(0);
+        }
+
+        /* Fade in animation for step transitions */
+        .animate-fadeIn {
+          animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        /* Dropdown styling */
+        select option {
+          background-color: #0a0a0f;
+          color: white;
         }
 
         /* System font stack */

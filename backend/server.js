@@ -35,18 +35,28 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Counter for waitlist positions (in-memory, resets on restart)
+let waitlistCounter = 1;
+
 // Submit email to waitlist
 app.post('/api/waitlist', async (req, res) => {
-  const { email } = req.body;
+  const { email, name, company, role, useCase, referralSource, social, timestamp } = req.body;
 
   if (!email) {
     return res.status(400).json({ error: 'Email is required' });
   }
 
-  const timestamp = new Date().toISOString();
+  const submissionTime = timestamp || new Date().toISOString();
+  const position = waitlistCounter++;
+
+  // Calculate priority score (1 = email only, 2 = with details)
+  const hasDetails = name || company || role || useCase || referralSource || social;
+  const priorityScore = hasDetails ? 2 : 1;
+
   const results = {
     googleSheets: null,
     formspree: null,
+    position,
   };
 
   // 1. Save to Google Sheets (if configured)
@@ -54,16 +64,51 @@ app.post('/api/waitlist', async (req, res) => {
     try {
       const sheets = getGoogleSheetsClient();
       if (sheets) {
+        // First check if headers exist
+        try {
+          const headerCheck = await sheets.spreadsheets.values.get({
+            spreadsheetId: process.env.GOOGLE_SHEET_ID,
+            range: 'Sheet1!A1:J1',
+          });
+
+          // If no headers, add them
+          if (!headerCheck.data.values || headerCheck.data.values.length === 0) {
+            await sheets.spreadsheets.values.update({
+              spreadsheetId: process.env.GOOGLE_SHEET_ID,
+              range: 'Sheet1!A1:J1',
+              valueInputOption: 'USER_ENTERED',
+              requestBody: {
+                values: [['Email', 'Timestamp', 'Name', 'Company', 'Role', 'Use Case', 'Referral Source', 'Social', 'Priority Score', 'Position']],
+              },
+            });
+          }
+        } catch (headerError) {
+          // If checking headers fails, just continue
+          console.log('Note: Could not check/set headers');
+        }
+
+        // Append the data
         await sheets.spreadsheets.values.append({
           spreadsheetId: process.env.GOOGLE_SHEET_ID,
-          range: 'Sheet1!A:B',
+          range: 'Sheet1!A:J',
           valueInputOption: 'USER_ENTERED',
           requestBody: {
-            values: [[email, timestamp]],
+            values: [[
+              email,
+              submissionTime,
+              name || '',
+              company || '',
+              role || '',
+              useCase || '',
+              referralSource || '',
+              social || '',
+              priorityScore,
+              position
+            ]],
           },
         });
         results.googleSheets = 'success';
-        console.log('✓ Saved to Google Sheets:', email);
+        console.log(`✓ Saved to Google Sheets: ${email} (Position: #${position}, Priority: ${priorityScore})`);
       }
     } catch (error) {
       console.error('Google Sheets error:', error.message);
@@ -78,11 +123,19 @@ app.post('/api/waitlist', async (req, res) => {
     try {
       await axios.post(process.env.FORMSPREE_ENDPOINT, {
         email,
-        timestamp,
+        timestamp: submissionTime,
+        name: name || 'Not provided',
+        company: company || 'Not provided',
+        role: role || 'Not provided',
+        useCase: useCase || 'Not provided',
+        referralSource: referralSource || 'Not provided',
+        social: social || 'Not provided',
+        priorityScore,
+        position,
         _subject: 'New Quickgage Waitlist Signup',
       });
       results.formspree = 'success';
-      console.log('✓ Sent to Formspree:', email);
+      console.log(`✓ Sent to Formspree: ${email} (Position: #${position})`);
     } catch (error) {
       console.error('Formspree error:', error.message);
       results.formspree = 'error';
@@ -98,6 +151,8 @@ app.post('/api/waitlist', async (req, res) => {
     res.json({
       success: true,
       message: 'Successfully added to waitlist',
+      position,
+      priorityScore,
       results
     });
   } else {

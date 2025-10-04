@@ -6,8 +6,11 @@ Premium, minimalist waitlist landing page for Quickgage - AI voice personalizati
 
 - ✨ Animated starfield background with floating orbs
 - 🎯 Scroll-triggered animations
-- 📧 Email validation and waitlist signup
+- 📧 Two-step waitlist signup (email → optional details)
+- 🚀 Gamification: Move up the waitlist by providing more info
 - 📊 Dual submission: Formspree + Google Sheets
+- 🏆 Waitlist position tracking with priority scoring
+- 📋 Collects: Email, Name, Company, Role, Use Case, Referral Source, Social
 - 🐳 Docker Compose deployment ready
 
 ## Quick Start
@@ -97,8 +100,10 @@ To enable Google Sheets integration:
    - Give it "Editor" permissions
 
 7. **Set Up Sheet Structure**
-   - Column A: Email
-   - Column B: Timestamp
+   - The backend will automatically create headers on first submission
+   - Columns: Email | Timestamp | Name | Company | Role | Use Case | Referral Source | Social | Priority Score | Position
+   - **Priority Score**: 1 = email only, 2 = with additional details
+   - **Position**: Waitlist rank number
 
 ## Environment Variables
 
@@ -137,26 +142,42 @@ quickgage/
 ## API Endpoints
 
 ### POST /api/waitlist
-Submit email to waitlist
+Submit user to waitlist with optional additional details
 
 **Request:**
 ```json
 {
-  "email": "user@example.com"
+  "email": "user@example.com",
+  "name": "John Doe",
+  "company": "Acme Corp",
+  "role": "Product Manager",
+  "useCase": "Want to create authentic content for my blog",
+  "referralSource": "twitter",
+  "social": "https://twitter.com/johndoe",
+  "timestamp": "2024-10-04T12:00:00.000Z"
 }
 ```
+
+**Note:** Only `email` is required. All other fields are optional.
 
 **Response:**
 ```json
 {
   "success": true,
   "message": "Successfully added to waitlist",
+  "position": 47,
+  "priorityScore": 2,
   "results": {
     "googleSheets": "success",
-    "formspree": "success"
+    "formspree": "success",
+    "position": 47
   }
 }
 ```
+
+**Priority Scoring:**
+- `1` = Email only (basic signup)
+- `2` = With additional details (higher priority)
 
 ### GET /api/health
 Health check endpoint
